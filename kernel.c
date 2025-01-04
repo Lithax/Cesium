@@ -25,6 +25,7 @@ void process_command(char *command);
 void clear_buffer(void);
 void itoa(int num, char *str);
 void printf(const char *format, ...);
+int string_length(const char* str);
 
 
 // Global variables
@@ -84,21 +85,23 @@ void readLine(char *buffer, int size) {
     char c;
 
     while (i < size - 1) {
-        while ((c = buffer_get()) == 0) {
-            __asm__("hlt"); // Halt to save power
+        c = buffer_get();  // Get character from buffer
+
+        if (c == 0) {
+            continue;  // No input yet, continue checking
         }
 
         // Handle backspace
         if (c == '\b' && i > 0) {
             i--;
-            putchar('\b'); // Remove last character
+            putchar('\b'); // Remove last character on the screen
         } else if (c == '\n') {
             buffer[i] = '\0';
             putchar('\n');
             return;
         } else if (c != '\b') {
             buffer[i++] = c;
-            putchar(c); // Echo character
+            putchar(c); // Echo character on the screen
         }
     }
 
@@ -108,17 +111,21 @@ void readLine(char *buffer, int size) {
 // Print a character to the screen
 void putchar(char c) {
     if (c == '\n') {
-        cursor = (cursor / SCREEN_WIDTH + 1) * SCREEN_WIDTH; // Move to next line
+        // Move the cursor to the next line
+        cursor = (cursor / SCREEN_WIDTH + 1) * SCREEN_WIDTH;
     } else {
+        // Write the character to video memory at the current cursor position
         video_memory[cursor * 2] = c;      // Character
         video_memory[cursor * 2 + 1] = 0x07; // Attribute byte (white on black)
-        cursor++;
 
+        // Move the cursor to the next position
+        cursor++;
         if (cursor >= SCREEN_WIDTH * SCREEN_HEIGHT) {
-            cursor = 0; // Wrap around to top if at the end
+            cursor = 0; // Wrap around to the top-left if at the end of the screen
         }
     }
 }
+
 
 // Print formatted output
 void printf(const char *format, ...) {
@@ -187,14 +194,25 @@ void itoa(int num, char *str) {
     }
 }
 
+int string_length(const char* str) {
+    int length = 0;
+    while (str[length] != '\0') {
+        length++;
+    }
+    return length;
+}
+
 int strcmp(char* str1, char* str2) {
-    if(sizeof(str1) != sizeof(str2)) {
+    int len = string_length(str1);
+    if(len != string_length(str2)) {
         return 1;
-    } else {
-        for() {
-            
+    }
+    for(int x = 0; x < len; x++) {
+        if(str1[x] != str2[x]) {
+            return 1;
         }
     }
+    return 0;
 }
 
 // Process commands
@@ -216,8 +234,10 @@ void _start(void) {
 
     printf("Welcome to Lithax OS!\n");
 
+    printf("%d\n", strcmp("welcoma", "welcome"));  // Prints 0
+
     while (1) {
-        printf("lithax $ ");
+        printf("lithax \\ $ ");
         readLine(command_buffer, BUFFER_SIZE);
         process_command(command_buffer);
     }

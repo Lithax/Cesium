@@ -4,6 +4,13 @@ set -e
 echo "Cleaning up old files..."
 rm -f kernel.o kernel.elf kernel.bin
 
+echo "Compiling dependencies..."
+for file in lib/*.c; do
+    gcc -m32 -ffreestanding -c "$file" -o "${file%.c}.o"
+done
+
+gcc -m32 -ffreestanding -nostdlib -o kernel.bin *.o
+
 echo "Compiling kernel..."
 gcc -m32 -ffreestanding -c kernel.c -o kernel.o
 

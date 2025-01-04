@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.tix": "plaintext",
+        "stdint.h": "c"
+    }
+}
